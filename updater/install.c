@@ -798,6 +798,14 @@ static int ApplyParsedPerms(
     int bad = 0;
 
     if (parsed.has_selabel) {
+        /*
+         * Using GCC 5.1 with install.c causes segfault with
+         * 'lsetfilecon(filename, parsed.selabel)' for an unknown reason.
+         * Maybe a GCC bug, or we're using a wrong pointer.
+         * Workaround by assigning &parsed.selabel to an unused char variable
+         * until we can find a cleaner solution.
+         */
+        char unusedptrselabel = &parsed.selabel;
         if (lsetfilecon(filename, parsed.selabel) != 0) {
             uiPrintf(state, "ApplyParsedPerms: lsetfilecon of %s to %s failed: %s\n",
                     filename, parsed.selabel, strerror(errno));
